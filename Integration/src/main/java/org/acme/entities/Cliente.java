@@ -1,6 +1,8 @@
 package org.acme.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "cliente")
@@ -10,25 +12,29 @@ public class Cliente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Nome é obrigatório")
     @Column(name = "nome", length = 100, nullable = false)
     private String nome;
 
+    @NotBlank(message = "E-mail é obrigatório")
+    @Email(message = "E-mail deve ser válido")
     @Column(name = "email", length = 254, nullable = false, unique = true)
     private String email;
 
+    @NotBlank(message = "CEP é obrigatório")
     @Column(name = "cep", length = 9, nullable = false)
     private String cep;
 
-    @Column(name = "uf", length = 2, nullable = false)
+    @Column(name = "uf", length = 2, nullable = true)
     private String uf;
 
-    @Column(name = "localidade", length = 100, nullable = false)
+    @Column(name = "localidade", length = 100, nullable = true)
     private String localidade;
 
-    @Column(name = "bairro", length = 100, nullable = false)
+    @Column(name = "bairro", length = 100, nullable = true)
     private String bairro;
 
-    @Column(name = "logradouro", length = 100, nullable = false)
+    @Column(name = "logradouro", length = 100, nullable = true)
     private String logradouro;
 
     // Construtores

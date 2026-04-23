@@ -2,6 +2,7 @@ package org.acme.resources;
 
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -20,9 +21,6 @@ public class ClienteResource {
     @Inject
     ClienteRepository clienteRepository;
 
-    @Inject
-    ViaCEPService viaCEPService;
-
     @GET
     public List<Cliente> listar() {
         return clienteRepository.listAll();
@@ -36,29 +34,12 @@ public class ClienteResource {
 
     @POST
     @Transactional
-    public Response criar(Cliente cliente) {
+    public Response criar(@Valid Cliente cliente) {
         if (clienteRepository.findByEmail(cliente.getEmail()) != null) {
             return Response.status(Response.Status.CONFLICT)
                     .entity("E-mail já cadastrado")
                     .build();
         }
-
-        // Buscar dados de endereço através do ViaCEP caso o CEP seja fornecido
-        if (cliente.getCep() != null && !cliente.getCep().isBlank()) {
-            ViaCEPResponse resposta = viaCEPService.buscarEnderecoPorCEP(cliente.getCep());
-            
-            if (resposta != null) {
-                cliente.setLogradouro(resposta.getLogradouro());
-                cliente.setBairro(resposta.getBairro());
-                cliente.setLocalidade(resposta.getLocalidade());
-                cliente.setUf(resposta.getUf());
-            } else {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("CEP inválido ou não encontrado")
-                        .build();
-            }
-        }
-
         clienteRepository.persist(cliente);
         return Response.status(Response.Status.CREATED).entity(cliente).build();
     }
@@ -66,7 +47,7 @@ public class ClienteResource {
     @PUT
     @Path("/{id}")
     @Transactional
-    public Response atualizar(@PathParam("id") Long id, Cliente clienteAtualizado) {
+    public Response atualizar(@PathParam("id") Long id, @Valid Cliente clienteAtualizado) {
         Cliente cliente = clienteRepository.findById(id);
         if (cliente == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
