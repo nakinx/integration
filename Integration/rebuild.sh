@@ -17,7 +17,7 @@ NC='\033[0m' # No Color
 
 # Função para imprimir mensagens
 print_info() {
-    echo -e "${BLUE}  $1${NC}"
+    echo -e "${BLUE} $1${NC}"
 }
 
 print_success() {
@@ -42,6 +42,7 @@ show_usage() {
     echo "  --restart    Apenas restart dos containers"
     echo "  --stop       Para os containers"
     echo "  --logs       Mostra logs dos containers"
+    echo "  --db         Conecta ao banco de dados PostgreSQL"
     echo "  --help       Mostra esta mensagem"
 }
 
@@ -91,6 +92,12 @@ show_logs() {
     docker-compose -f "$SCRIPT_DIR/docker-compose.yml" logs -f
 }
 
+# Função para conectar ao banco de dados
+db_shell() {
+    print_info "Conectando ao banco de dados PostgreSQL..."
+    docker-compose -f "$SCRIPT_DIR/docker-compose.yml" exec postgres psql -U postgres -d integration_db
+}
+
 # Main
 case "${1:-}" in
     --build-only)
@@ -105,6 +112,9 @@ case "${1:-}" in
     --logs)
         show_logs
         ;;
+    --db)
+        db_shell
+        ;;
     --help)
         show_usage
         ;;
@@ -118,8 +128,7 @@ case "${1:-}" in
         restart_containers
         
         print_info "═════════════════════════════════════════════"
-        print_success "Build e containers reiniciados com sucesso! 🚀"
-        print_info "Aplicação disponível em: http://localhost:8080"
+        print_success "Build e containers reiniciados com sucesso!"
         ;;
     *)
         print_error "Opção desconhecida: $1"
