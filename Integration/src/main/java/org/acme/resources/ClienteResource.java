@@ -5,8 +5,10 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.acme.dto.ViaCEPResponse;
 import org.acme.entities.Cliente;
 import org.acme.repositories.ClienteRepository;
+import org.acme.services.ViaCEPService;
 
 import java.util.List;
 
@@ -17,6 +19,9 @@ public class ClienteResource {
 
     @Inject
     ClienteRepository clienteRepository;
+
+    @Inject
+    ViaCEPService viaCEPService;
 
     @GET
     public List<Cliente> listar() {
@@ -37,6 +42,23 @@ public class ClienteResource {
                     .entity("E-mail já cadastrado")
                     .build();
         }
+
+        // Buscar dados de endereço através do ViaCEP caso o CEP seja fornecido
+        if (cliente.getCep() != null && !cliente.getCep().isBlank()) {
+            ViaCEPResponse resposta = viaCEPService.buscarEnderecoPorCEP(cliente.getCep());
+            
+            if (resposta != null) {
+                cliente.setLogradouro(resposta.getLogradouro());
+                cliente.setBairro(resposta.getBairro());
+                cliente.setLocalidade(resposta.getLocalidade());
+                cliente.setUf(resposta.getUf());
+            } else {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("CEP inválido ou não encontrado")
+                        .build();
+            }
+        }
+
         clienteRepository.persist(cliente);
         return Response.status(Response.Status.CREATED).entity(cliente).build();
     }
