@@ -48,3 +48,71 @@ docker-compose logs -f
 ```shell script
 docker exec -it integration-postgres psql -U postgres -d integration_db
 ```
+
+## Operações da API de Clientes
+
+### 1. Listar todos os clientes (GET)
+
+```bash
+curl -X GET http://localhost:8080/clientes \
+  -H "Content-Type: application/json"
+```
+
+### 2. Obter um cliente específico (GET)
+
+```bash
+curl -X GET http://localhost:8080/clientes/1 \
+  -H "Content-Type: application/json"
+```
+
+### 3. Criar um novo cliente (POST) ⭐
+
+Você só precisa fornecer: `nome`, `email` e `cep`. Os campos `logradouro`, `bairro`, `localidade` e `uf` serão **preenchidos automaticamente**:
+
+```bash
+curl -X POST http://localhost:8080/clientes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "Ismael Filipe",
+    "email": "ismael@exemplo.com",
+    "cep": "71670012"
+  }'
+```
+
+**Resposta esperada:**
+```json
+{
+  "id": 1,
+  "nome": "Ismael Filipe",
+  "email": "ismael@example.com",
+  "cep": "70670012",
+  "logradouro": "Quadra 100",
+  "bairro": "Setor Sudoeste",
+  "localidade": "Brasília",
+  "uf": "DF"
+}
+```
+
+### 4. Atualizar um cliente (PUT)
+
+```bash
+curl -X PUT http://localhost:8080/clientes/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "Ismael Filipe",
+    "email": "ismael@email.com",
+    "cep": "70670012",
+    "uf": "DF",
+    "localidade": "Brasilia",
+    "bairro": "Setor Sudoeste",
+    "logradouro": "Quadra 100"
+  }'
+```
+
+### 5. Deletar um cliente (DELETE)
+
+```bash
+curl -X DELETE http://localhost:8080/clientes/1 \
+  -H "Content-Type: application/json"
+```
+
