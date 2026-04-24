@@ -1,7 +1,6 @@
 package org.acme.resources;
 
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -13,13 +12,12 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.acme.dto.ViaCEPResponse;
+import org.acme.business.ClienteBusiness;
+import org.acme.business.ClienteBusiness.ClienteNaoEncontradoException;
+import org.acme.business.ClienteBusiness.CepInvalidoException;
+import org.acme.business.ClienteBusiness.EmailJaCadastradoException;
 import org.acme.dto.ClienteRequest;
 import org.acme.entities.Cliente;
-import org.acme.repositories.ClienteRepository;
-import org.acme.services.ViaCEPService;
-import org.acme.services.NominatimService;
-import org.acme.dto.NominatimResponse;
 
 import java.util.List;
 
@@ -30,13 +28,7 @@ import java.util.List;
 public class ClienteResource {
 
     @Inject
-    ClienteRepository clienteRepository;
-
-    @Inject
-    ViaCEPService viaCEPService;
-
-    @Inject
-    NominatimService nominatimService;
+    ClienteBusiness clienteBusiness;
 
     @GET
     @Operation(
@@ -52,7 +44,7 @@ public class ClienteResource {
         ))
     })
     public List<Cliente> listar() {
-        return clienteRepository.listAll();
+        return clienteBusiness.listar();
     }
 
     @GET
@@ -70,15 +62,18 @@ public class ClienteResource {
         )),
         @APIResponse(responseCode = "404", description = "Cliente não encontrado")
     })
-    public Cliente obter(
+    public Response obter(
             @Parameter(description = "ID do cliente", required = true, example = "1")
             @PathParam("id") Long id
     ) {
-        return clienteRepository.findById(id);
+        Cliente cliente = clienteBusiness.obter(id);
+        if (cliente == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(cliente).build();
     }
 
     @POST
-    @Transactional
     @Operation(summary = "Criar novo cliente", description = "Cria um novo cliente no sistema. O email deve ser único. O CEP será usado para buscar automaticamente os dados de endereço e coordenadas geográficas.")
     @APIResponses({
         @APIResponse(
@@ -91,57 +86,22 @@ public class ClienteResource {
         @APIResponse(responseCode = "409", description = "Email já cadastrado no sistema")
     })
     public Response criar(@Valid ClienteRequest request) {
-
-        if (clienteRepository.findByEmail(request.getEmail()) != null) {
+        try {
+            Cliente cliente = clienteBusiness.criar(request);
+            return Response.status(Response.Status.CREATED).entity(cliente).build();
+        } catch (EmailJaCadastradoException e) {
             return Response.status(Response.Status.CONFLICT)
-                    .entity("E-mail já cadastrado")
+                    .entity(e.getMessage())
+                    .build();
+        } catch (CepInvalidoException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(e.getMessage())
                     .build();
         }
-
-        // Criar novo cliente com os dados da requisição
-        Cliente cliente = new Cliente();
-        cliente.setNome(request.getNome());
-        cliente.setEmail(request.getEmail());
-        cliente.setCep(request.getCep());
-
-        // Buscar dados de endereço atraves do ViaCEP caso o CEP seja fornecido
-        if (cliente.getCep() != null && !cliente.getCep().isBlank()) {
-            ViaCEPResponse resposta = viaCEPService.buscarEnderecoPorCEP(cliente.getCep());
-            
-            if (resposta != null) {
-                cliente.setLogradouro(resposta.getLogradouro());
-                cliente.setBairro(resposta.getBairro());
-                cliente.setLocalidade(resposta.getLocalidade());
-                cliente.setUf(resposta.getUf());
-                
-                // Buscar coordenadas via Nominatim
-                NominatimResponse coordenadas = nominatimService.buscarCoordenadas(
-                        resposta.getLogradouro(),
-                        resposta.getBairro(),
-                        resposta.getLocalidade(),
-                        resposta.getUf()
-                );
-                
-                if (coordenadas != null) {
-                    cliente.setLatitude(coordenadas.getLatitude());
-                    cliente.setLongitude(coordenadas.getLongitude());
-                    cliente.setMapUrl(coordenadas.getMapUrl());
-                }
-            } else {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("CEP inválido ou não encontrado")
-                        .build();
-            }
-        }
-
-        clienteRepository.persist(cliente);
-        
-        return Response.status(Response.Status.CREATED).entity(cliente).build();
     }
 
     @PUT
     @Path("/{id}")
-    @Transactional
     @Operation(
         summary = "Atualizar cliente", 
         description = "Atualiza os dados de um cliente existente"
@@ -162,60 +122,26 @@ public class ClienteResource {
             @PathParam("id") Long id, 
             @Valid ClienteRequest request
     ) {
-
-        Cliente cliente = clienteRepository.findById(id);
-        
-        if (cliente == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+        try {
+            Cliente cliente = clienteBusiness.atualizar(id, request);
+            return Response.ok(cliente).build();
+        } catch (ClienteNaoEncontradoException e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(e.getMessage())
+                    .build();
+        } catch (EmailJaCadastradoException e) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(e.getMessage())
+                    .build();
+        } catch (CepInvalidoException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(e.getMessage())
+                    .build();
         }
-
-        cliente.setNome(request.getNome());
-        cliente.setEmail(request.getEmail());
-        
-        // Verificar se o CEP foi modificado
-        if (request.getCep() != null && !request.getCep().equals(cliente.getCep())) {
-            // CEP foi modificado, buscar novos dados via ViaCEP
-            if (!request.getCep().isBlank()) {
-                ViaCEPResponse resposta = viaCEPService.buscarEnderecoPorCEP(request.getCep());
-                
-                if (resposta != null) {
-                    cliente.setCep(request.getCep());
-                    cliente.setLogradouro(resposta.getLogradouro());
-                    cliente.setBairro(resposta.getBairro());
-                    cliente.setLocalidade(resposta.getLocalidade());
-                    cliente.setUf(resposta.getUf());
-                    
-                    // Buscar novas coordenadas via Nominatim
-                    NominatimResponse coordenadas = nominatimService.buscarCoordenadas(
-                            resposta.getLogradouro(),
-                            resposta.getBairro(),
-                            resposta.getLocalidade(),
-                            resposta.getUf()
-                    );
-                    
-                    if (coordenadas != null) {
-                        cliente.setLatitude(coordenadas.getLatitude());
-                        cliente.setLongitude(coordenadas.getLongitude());
-                        cliente.setMapUrl(coordenadas.getMapUrl());
-                    }
-                } else {
-                    return Response.status(Response.Status.BAD_REQUEST)
-                            .entity("CEP inválido ou não encontrado")
-                            .build();
-                }
-            } else {
-                cliente.setCep(request.getCep());
-            }
-        }
-
-        clienteRepository.persist(cliente);
-
-        return Response.ok(cliente).build();
     }
 
     @DELETE
     @Path("/{id}")
-    @Transactional
     @Operation(
         summary = "Deletar cliente", 
         description = "Remove um cliente do sistema"
@@ -228,12 +154,13 @@ public class ClienteResource {
             @Parameter(description = "ID do cliente", required = true, example = "1")
             @PathParam("id") Long id
     ) {
-        boolean deletado = clienteRepository.deleteById(id);
-    
-        if (!deletado) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+        try {
+            clienteBusiness.deletar(id);
+            return Response.noContent().build();
+        } catch (ClienteNaoEncontradoException e) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(e.getMessage())
+                    .build();
         }
-    
-        return Response.noContent().build();
     }
 }

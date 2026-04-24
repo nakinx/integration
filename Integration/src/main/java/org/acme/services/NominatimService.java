@@ -61,7 +61,7 @@ public class NominatimService {
                 return null;
             }
 
-            // Parse JSON response
+            // Parse JSON da resposta para extrair latitude e longitude
             ObjectMapper mapper = new ObjectMapper();
             List<Map<String, Object>> results = mapper.readValue(responseBody, List.class);
 
@@ -77,8 +77,11 @@ public class NominatimService {
             response.setLongitude(Double.parseDouble(firstResult.get("lon").toString()));
             
             // Gerar URL do mapa
-            String mapUrl = String.format("https://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=15",
-                    response.getLatitude(), response.getLongitude());
+            String mapUrl = String.format(
+                "https://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=15",
+                response.getLatitude(),
+                response.getLongitude()
+            );
             response.setMapUrl(mapUrl);
             
             logger.info("Coordenadas encontradas - Latitude: " + response.getLatitude() + 
