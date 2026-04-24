@@ -1,6 +1,51 @@
-# Integrações
+# Integração
 
-Este projeto tem como objetivo testar as habilidades de integrações utilizando REST API.
+Este projeto tem como objetivo avaliar habilidades de integração utilizando APIs REST.
+
+Como parte do exercício, a aplicação permite o cadastro de clientes e, a partir da informação de CEP, realiza a consulta de dados de endereço por meio de uma API externa. Com o endereço obtido, o sistema também consome outra API para recuperar as coordenadas geográficas (latitude e longitude) correspondentes ao local.
+
+Além disso, o projeto expõe APIs para consumo externo que permitem listar, criar, alterar e excluir clientes, seguindo os princípios de uma arquitetura RESTful.
+
+## Arquitetura
+
+O projeto foi desenvolvido em Java, utilizando o framework Quarkus, com foco em desempenho e produtividade no desenvolvimento de aplicações backend.
+
+Para persistência dos dados, é utilizado um banco de dados relacional PostgreSQL, garantindo confiabilidade e consistência das informações armazenadas.
+
+### Fluxo dos Dados
+
+HTTP Request
+    ↓
+[ClienteResource] ← Recebe requisição
+    ↓
+[ClienteBusiness] ← Processa lógica
+    ↓
+[ClienteRepository] ← Persiste dados
+    ↓
+[Cliente] ← Entidade mapeada
+    ↓
+[Banco de Dados]
+
+### Estrutura de Pacotes
+
+org/acme/
+├── business/ .................................. Lógica de negócio                                   
+│   └── ClienteBusiness.java 
+├── resources/ ................................. Endpoints HTTP REST
+│   └── ClienteResource.java 
+├── services/ .................................. Integração com APIs externas
+│   ├── ViaCEPService.java 
+│   └── NominatimService.java 
+├── repositories/ .............................. Acesso a dados no banco
+│   └── ClienteRepository.java 
+├── entities/ .................................. Entidade do banco de dados
+│   └── Cliente.java  
+├── dto/ ....................................... Transferência de dados entre camadas
+│   ├── ClienteRequest.java 
+│   ├── ViaCEPResponse.java .................... ViaCEP
+│   └── NominatimResponse.java ................. Nominatim
+└── config/ .................................... Configurações da aplicação
+    └── OpenAPIConfig.java 
 
 ## Configuração Inicial do Banco de Dados
 
@@ -26,93 +71,25 @@ Ao criar o banco de dados pela primeira vez, configure o Hibernate para criar as
 
 ## Executando o Projeto
 
-O projeto inclui um `docker-compose.yml` com containers PostgreSQL e Quarkus:
+O script run.sh auxilia nas principais funcionalidades do ambiente de desenvolvimento da aplicação, automatizando tarefas comuns do dia a dia do desenvolvedor. Abaixo está a lista de funcionalidades disponibilizadas:
 
-```shell script
-# Iniciar todos os serviços
-docker-compose up --build
+  Executa um rebuild completo do projeto e reinicia os containers Docker:
+  ./run.sh
 
-# Iniciar em segundo plano
-docker-compose up -d --build
+  Executa apenas o rebuild do projeto Maven sem afetar os containers:
+  ./run.sh --build-only
 
-# Parar serviços
-docker-compose down
+  Reinicia apenas os containers Docker sem rebuild:
+  ./run.sh --restart
 
-# Ver logs
-docker-compose logs -f
-```
+  Para todos os containers da aplicação de forma limpa:
+  ./run.sh --stop
 
-## Acesso ao container de Banco de Dados
+  Mostra os logs em tempo real de todos os containers:
+  ./run.sh --logs
 
-**Conectar ao container PostgreSQL:**
-```shell script
-docker exec -it integration-postgres psql -U postgres -d integration_db
-```
+  Conecta diretamente ao PostgreSQL via terminal interativo:
+  ./run.sh --db
 
-## Operações da API de Clientes
-
-### 1. Listar todos os clientes (GET)
-
-```bash
-curl -X GET http://localhost:8080/clientes \
-  -H "Content-Type: application/json"
-```
-
-### 2. Obter um cliente específico (GET)
-
-```bash
-curl -X GET http://localhost:8080/clientes/1 \
-  -H "Content-Type: application/json"
-```
-
-### 3. Criar um novo cliente (POST) ⭐
-
-Você só precisa fornecer: `nome`, `email` e `cep`. Os campos `logradouro`, `bairro`, `localidade` e `uf` serão **preenchidos automaticamente**:
-
-```bash
-curl -X POST http://localhost:8080/clientes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nome": "Ismael Filipe",
-    "email": "ismael@exemplo.com",
-    "cep": "71670012"
-  }'
-```
-
-**Resposta esperada:**
-```json
-{
-  "id": 1,
-  "nome": "Ismael Filipe",
-  "email": "ismael@example.com",
-  "cep": "70670012",
-  "logradouro": "Quadra 100",
-  "bairro": "Setor Sudoeste",
-  "localidade": "Brasília",
-  "uf": "DF"
-}
-```
-
-### 4. Atualizar um cliente (PUT)
-
-```bash
-curl -X PUT http://localhost:8080/clientes/1 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nome": "Ismael Filipe",
-    "email": "ismael@email.com",
-    "cep": "70670012",
-    "uf": "DF",
-    "localidade": "Brasilia",
-    "bairro": "Setor Sudoeste",
-    "logradouro": "Quadra 100"
-  }'
-```
-
-### 5. Deletar um cliente (DELETE)
-
-```bash
-curl -X DELETE http://localhost:8080/clientes/1 \
-  -H "Content-Type: application/json"
-```
-
+  Executa todos os testes unitários e de integração com apresentação formatada dos resultados:
+  ./run.sh --test
