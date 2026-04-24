@@ -4,6 +4,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.acme.dto.NominatimResponse;
+import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.jboss.logging.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -17,6 +19,13 @@ public class NominatimService {
     private static final String NOMINATIM_BASE_URL = "https://nominatim.openstreetmap.org/search";
     private static final int TIMEOUT_MS = 5000;
 
+    @Retry(
+        maxRetries = 3,
+        delay = 500,
+        maxDuration = 5000,
+        jitter = 100
+    )
+    @Timeout(5000)
     public NominatimResponse buscarCoordenadas(String logradouro, String bairro, String localidade, String uf) {
         if ((logradouro == null || logradouro.isBlank()) && 
             (localidade == null || localidade.isBlank())) {

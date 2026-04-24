@@ -23,31 +23,25 @@ class ClienteRequestTest {
 
     @Test
     void testClienteRequestValido() {
-        // Arrange
         ClienteRequest request = new ClienteRequest();
         request.setNome("João Silva");
         request.setEmail("joao@example.com");
         request.setCep("01310100");
 
-        // Act
         Set<ConstraintViolation<ClienteRequest>> violations = validator.validate(request);
-
-        // Assert
+        
         assertTrue(violations.isEmpty(), "Não deveria haver violações para dados válidos");
     }
 
     @Test
-    void testClienteRequest_NomeVazio_DeveRetornarErro() {
-        // Arrange
+    void testClienteRequest_NomeVazio_DeveRetornarErro() {        
         ClienteRequest request = new ClienteRequest();
         request.setNome("");
         request.setEmail("joao@example.com");
         request.setCep("01310100");
-
-        // Act
+        
         Set<ConstraintViolation<ClienteRequest>> violations = validator.validate(request);
-
-        // Assert
+        
         assertEquals(1, violations.size());
         ConstraintViolation<ClienteRequest> violation = violations.iterator().next();
         assertEquals("Nome é obrigatório", violation.getMessage());
@@ -55,34 +49,28 @@ class ClienteRequestTest {
     }
 
     @Test
-    void testClienteRequest_NomeNulo_DeveRetornarErro() {
-        // Arrange
+    void testClienteRequest_NomeNulo_DeveRetornarErro() {        
         ClienteRequest request = new ClienteRequest();
         request.setNome(null);
         request.setEmail("joao@example.com");
         request.setCep("01310100");
-
-        // Act
+        
         Set<ConstraintViolation<ClienteRequest>> violations = validator.validate(request);
-
-        // Assert
+        
         assertEquals(1, violations.size());
         ConstraintViolation<ClienteRequest> violation = violations.iterator().next();
         assertEquals("Nome é obrigatório", violation.getMessage());
     }
 
     @Test
-    void testClienteRequest_EmailVazio_DeveRetornarErro() {
-        // Arrange
+    void testClienteRequest_EmailVazio_DeveRetornarErro() {        
         ClienteRequest request = new ClienteRequest();
         request.setNome("João Silva");
         request.setEmail("");
         request.setCep("01310100");
-
-        // Act
+        
         Set<ConstraintViolation<ClienteRequest>> violations = validator.validate(request);
-
-        // Assert
+        
         assertEquals(1, violations.size());
         ConstraintViolation<ClienteRequest> violation = violations.iterator().next();
         assertEquals("E-mail é obrigatório", violation.getMessage());
@@ -90,75 +78,61 @@ class ClienteRequestTest {
 
     @Test
     void testClienteRequest_EmailInvalido_DeveRetornarErro() {
-        // Arrange
         ClienteRequest request = new ClienteRequest();
         request.setNome("João Silva");
         request.setEmail("email-invalido");
         request.setCep("01310100");
-
-        // Act
+        
         Set<ConstraintViolation<ClienteRequest>> violations = validator.validate(request);
-
-        // Assert
+        
         assertEquals(1, violations.size());
         ConstraintViolation<ClienteRequest> violation = violations.iterator().next();
         assertEquals("E-mail deve ser válido", violation.getMessage());
     }
 
     @Test
-    void testClienteRequest_CepVazio_DeveRetornarErro() {
-        // Arrange
+    void testClienteRequest_CepVazio_DeveRetornarErro() {        
         ClienteRequest request = new ClienteRequest();
         request.setNome("João Silva");
         request.setEmail("joao@example.com");
         request.setCep("");
-
-        // Act
+        
         Set<ConstraintViolation<ClienteRequest>> violations = validator.validate(request);
-
-        // Assert
+        
         assertEquals(1, violations.size());
         ConstraintViolation<ClienteRequest> violation = violations.iterator().next();
         assertEquals("CEP é obrigatório", violation.getMessage());
     }
 
     @Test
-    void testClienteRequest_TodosCamposInvalidos_DeveRetornarMultiplosErros() {
-        // Arrange
+    void testClienteRequest_TodosCamposInvalidos_DeveRetornarMultiplosErros() {        
         ClienteRequest request = new ClienteRequest();
         request.setNome("");
         request.setEmail("email-invalido");
         request.setCep("");
-
-        // Act
+        
         Set<ConstraintViolation<ClienteRequest>> violations = validator.validate(request);
-
-        // Assert
+        
         assertEquals(3, violations.size());
     }
 
     @Test
     void testClienteRequest_Construtor() {
-        // Act
         ClienteRequest request = new ClienteRequest("João Silva", "joao@example.com", "01310100");
-
-        // Assert
+        
         assertEquals("João Silva", request.getNome());
         assertEquals("joao@example.com", request.getEmail());
         assertEquals("01310100", request.getCep());
     }
 
     @Test
-    void testClienteRequest_GettersSetters() {
-        // Arrange
+    void testClienteRequest_GettersSetters() {        
         ClienteRequest request = new ClienteRequest();
 
-        // Act
         request.setNome("Maria Santos");
         request.setEmail("maria@example.com");
         request.setCep("04567890");
-
-        // Assert
+        
         assertEquals("Maria Santos", request.getNome());
         assertEquals("maria@example.com", request.getEmail());
         assertEquals("04567890", request.getCep());

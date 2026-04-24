@@ -52,12 +52,10 @@ class ClienteResourceTest {
     }
 
     @Test
-    void testListar_DeveRetornarStatus200ComListaDeClientes() {
-        // Arrange
+    void testListar_DeveRetornarStatus200ComListaDeClientes() {       
         List<Cliente> clientes = Arrays.asList(cliente);
         when(clienteBusiness.listar()).thenReturn(clientes);
-
-        // Act & Assert
+        
         given()
             .when()
                 .get("/clientes")
@@ -73,11 +71,9 @@ class ClienteResourceTest {
     }
 
     @Test
-    void testObter_DeveRetornarStatus200ComCliente() {
-        // Arrange
+    void testObter_DeveRetornarStatus200ComCliente() {       
         when(clienteBusiness.obter(1L)).thenReturn(cliente);
-
-        // Act & Assert
+        
         given()
             .when()
                 .get("/clientes/1")
@@ -94,11 +90,9 @@ class ClienteResourceTest {
     }
 
     @Test
-    void testObter_DeveRetornarStatus404QuandoClienteNaoExiste() {
-        // Arrange
+    void testObter_DeveRetornarStatus404QuandoClienteNaoExiste() {       
         when(clienteBusiness.obter(99L)).thenReturn(null);
-
-        // Act & Assert
+        
         given()
             .when()
                 .get("/clientes/99")
@@ -109,11 +103,9 @@ class ClienteResourceTest {
     }
 
     @Test
-    void testCriar_DeveRetornarStatus201ComClienteCriado() throws Exception {
-        // Arrange
+    void testCriar_DeveRetornarStatus201ComClienteCriado() throws Exception {       
         when(clienteBusiness.criar(any(ClienteRequest.class))).thenReturn(cliente);
-
-        // Act & Assert
+        
         given()
             .contentType(ContentType.JSON)
             .body(clienteRequest)
@@ -131,11 +123,9 @@ class ClienteResourceTest {
 
     @Test
     void testCriar_DeveRetornarStatus409QuandoEmailJaCadastrado() throws Exception {
-        // Arrange
         when(clienteBusiness.criar(any(ClienteRequest.class)))
                 .thenThrow(new EmailJaCadastradoException("E-mail já cadastrado no sistema"));
 
-        // Act & Assert
         given()
             .contentType(ContentType.JSON)
             .body(clienteRequest)
@@ -150,11 +140,9 @@ class ClienteResourceTest {
 
     @Test
     void testCriar_DeveRetornarStatus400QuandoCepInvalido() throws Exception {
-        // Arrange
         when(clienteBusiness.criar(any(ClienteRequest.class)))
                 .thenThrow(new CepInvalidoException("CEP inválido ou não encontrado"));
 
-        // Act & Assert
         given()
             .contentType(ContentType.JSON)
             .body(clienteRequest)
@@ -169,11 +157,9 @@ class ClienteResourceTest {
 
     @Test
     void testCriar_DeveRetornarStatus400QuandoDadosInvalidos() {
-        // Arrange - ClienteRequest sem nome (campo obrigatório)
         ClienteRequest requestInvalido = new ClienteRequest();
         requestInvalido.setEmail("joao@example.com");
 
-        // Act & Assert
         given()
             .contentType(ContentType.JSON)
             .body(requestInvalido)
@@ -184,11 +170,9 @@ class ClienteResourceTest {
     }
 
     @Test
-    void testAtualizar_DeveRetornarStatus200ComClienteAtualizado() throws Exception {
-        // Arrange
+    void testAtualizar_DeveRetornarStatus200ComClienteAtualizado() throws Exception {       
         when(clienteBusiness.atualizar(eq(1L), any(ClienteRequest.class))).thenReturn(cliente);
-
-        // Act & Assert
+        
         given()
             .contentType(ContentType.JSON)
             .body(clienteRequest)
@@ -205,12 +189,10 @@ class ClienteResourceTest {
     }
 
     @Test
-    void testAtualizar_DeveRetornarStatus404QuandoClienteNaoExiste() throws Exception {
-        // Arrange
+    void testAtualizar_DeveRetornarStatus404QuandoClienteNaoExiste() throws Exception {       
         when(clienteBusiness.atualizar(eq(99L), any(ClienteRequest.class)))
                 .thenThrow(new ClienteNaoEncontradoException("Cliente não encontrado"));
-
-        // Act & Assert
+        
         given()
             .contentType(ContentType.JSON)
             .body(clienteRequest)
@@ -224,12 +206,10 @@ class ClienteResourceTest {
     }
 
     @Test
-    void testAtualizar_DeveRetornarStatus409QuandoEmailJaCadastrado() throws Exception {
-        // Arrange
+    void testAtualizar_DeveRetornarStatus409QuandoEmailJaCadastrado() throws Exception {       
         when(clienteBusiness.atualizar(eq(1L), any(ClienteRequest.class)))
                 .thenThrow(new EmailJaCadastradoException("E-mail já cadastrado para outro cliente"));
-
-        // Act & Assert
+        
         given()
             .contentType(ContentType.JSON)
             .body(clienteRequest)
@@ -243,11 +223,9 @@ class ClienteResourceTest {
     }
 
     @Test
-    void testDeletar_DeveRetornarStatus204QuandoClienteDeletado() throws Exception {
-        // Arrange
+    void testDeletar_DeveRetornarStatus204QuandoClienteDeletado() throws Exception {       
         doNothing().when(clienteBusiness).deletar(1L);
-
-        // Act & Assert
+        
         given()
             .when()
                 .delete("/clientes/1")
@@ -258,12 +236,10 @@ class ClienteResourceTest {
     }
 
     @Test
-    void testDeletar_DeveRetornarStatus404QuandoClienteNaoExiste() throws Exception {
-        // Arrange
+    void testDeletar_DeveRetornarStatus404QuandoClienteNaoExiste() throws Exception {       
         doThrow(new ClienteNaoEncontradoException("Cliente não encontrado"))
                 .when(clienteBusiness).deletar(99L);
-
-        // Act & Assert
+        
         given()
             .when()
                 .delete("/clientes/99")

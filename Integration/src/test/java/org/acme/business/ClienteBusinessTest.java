@@ -76,14 +76,11 @@ class ClienteBusinessTest {
 
     @Test
     void testListar_DeveRetornarListaDeClientes() {
-        // Arrange
         List<Cliente> clientes = Arrays.asList(cliente, new Cliente());
         when(clienteRepository.listAll()).thenReturn(clientes);
-
-        // Act
+        
         List<Cliente> resultado = clienteBusiness.listar();
-
-        // Assert
+        
         assertNotNull(resultado);
         assertEquals(2, resultado.size());
         verify(clienteRepository, times(1)).listAll();
@@ -91,13 +88,10 @@ class ClienteBusinessTest {
 
     @Test
     void testObter_DeveRetornarClientePorId() {
-        // Arrange
         when(clienteRepository.findById(1L)).thenReturn(cliente);
-
-        // Act
+        
         Cliente resultado = clienteBusiness.obter(1L);
-
-        // Assert
+        
         assertNotNull(resultado);
         assertEquals(cliente.getId(), resultado.getId());
         assertEquals(cliente.getNome(), resultado.getNome());
@@ -105,15 +99,12 @@ class ClienteBusinessTest {
     }
 
     @Test
-    void testCriar_ComSucesso_SemCEP() throws Exception {
-        // Arrange
+    void testCriar_ComSucesso_SemCEP() throws Exception {        
         clienteRequest.setCep(null);
         when(clienteRepository.findByEmail(anyString())).thenReturn(null);
-
-        // Act
+        
         Cliente resultado = clienteBusiness.criar(clienteRequest);
-
-        // Assert
+        
         assertNotNull(resultado);
         assertEquals(clienteRequest.getNome(), resultado.getNome());
         assertEquals(clienteRequest.getEmail(), resultado.getEmail());
@@ -123,17 +114,14 @@ class ClienteBusinessTest {
     }
 
     @Test
-    void testCriar_ComSucesso_ComCEPValido() throws Exception {
-        // Arrange
+    void testCriar_ComSucesso_ComCEPValido() throws Exception {        
         when(clienteRepository.findByEmail(anyString())).thenReturn(null);
         when(viaCEPService.buscarEnderecoPorCEP(anyString())).thenReturn(viaCEPResponse);
         when(nominatimService.buscarCoordenadas(anyString(), anyString(), anyString(), anyString()))
                 .thenReturn(nominatimResponse);
-
-        // Act
+        
         Cliente resultado = clienteBusiness.criar(clienteRequest);
-
-        // Assert
+        
         assertNotNull(resultado);
         assertEquals(clienteRequest.getNome(), resultado.getNome());
         assertEquals(clienteRequest.getEmail(), resultado.getEmail());
@@ -154,11 +142,10 @@ class ClienteBusinessTest {
     }
 
     @Test
-    void testCriar_DeveLancarExcecao_EmailJaCadastrado() {
-        // Arrange
+    void testCriar_DeveLancarExcecao_EmailJaCadastrado() {        
         when(clienteRepository.findByEmail(anyString())).thenReturn(cliente);
 
-        // Act & Assert
+         
         EmailJaCadastradoException exception = assertThrows(
                 EmailJaCadastradoException.class,
                 () -> clienteBusiness.criar(clienteRequest)
@@ -170,12 +157,11 @@ class ClienteBusinessTest {
     }
 
     @Test
-    void testCriar_DeveLancarExcecao_CepInvalido() {
-        // Arrange
+    void testCriar_DeveLancarExcecao_CepInvalido() {        
         when(clienteRepository.findByEmail(anyString())).thenReturn(null);
         when(viaCEPService.buscarEnderecoPorCEP(anyString())).thenReturn(null);
 
-        // Act & Assert
+         
         CepInvalidoException exception = assertThrows(
                 CepInvalidoException.class,
                 () -> clienteBusiness.criar(clienteRequest)
@@ -187,17 +173,14 @@ class ClienteBusinessTest {
     }
 
     @Test
-    void testAtualizar_ComSucesso_SemAlterarCEP() throws Exception {
-        // Arrange
+    void testAtualizar_ComSucesso_SemAlterarCEP() throws Exception {        
         cliente.setCep("01310-100");
-        clienteRequest.setCep("01310-100"); // Mesmo CEP
+        clienteRequest.setCep("01310-100"); 
         
         when(clienteRepository.findById(1L)).thenReturn(cliente);
-
-        // Act
+        
         Cliente resultado = clienteBusiness.atualizar(1L, clienteRequest);
-
-        // Assert
+        
         assertNotNull(resultado);
         assertEquals(clienteRequest.getNome(), resultado.getNome());
         assertEquals(clienteRequest.getEmail(), resultado.getEmail());
@@ -207,20 +190,17 @@ class ClienteBusinessTest {
     }
 
     @Test
-    void testAtualizar_ComSucesso_AlterandoCEP() throws Exception {
-        // Arrange
+    void testAtualizar_ComSucesso_AlterandoCEP() throws Exception {        
         cliente.setCep("01310-100");
-        clienteRequest.setCep("04567-890"); // CEP diferente
+        clienteRequest.setCep("04567-890");
         
         when(clienteRepository.findById(1L)).thenReturn(cliente);
         when(viaCEPService.buscarEnderecoPorCEP(anyString())).thenReturn(viaCEPResponse);
         when(nominatimService.buscarCoordenadas(anyString(), anyString(), anyString(), anyString()))
                 .thenReturn(nominatimResponse);
-
-        // Act
+        
         Cliente resultado = clienteBusiness.atualizar(1L, clienteRequest);
-
-        // Assert
+        
         assertNotNull(resultado);
         assertEquals(clienteRequest.getCep(), resultado.getCep());
         verify(viaCEPService, times(1)).buscarEnderecoPorCEP(clienteRequest.getCep());
@@ -228,11 +208,10 @@ class ClienteBusinessTest {
     }
 
     @Test
-    void testAtualizar_DeveLancarExcecao_ClienteNaoEncontrado() {
-        // Arrange
+    void testAtualizar_DeveLancarExcecao_ClienteNaoEncontrado() {        
         when(clienteRepository.findById(1L)).thenReturn(null);
 
-        // Act & Assert
+         
         ClienteNaoEncontradoException exception = assertThrows(
                 ClienteNaoEncontradoException.class,
                 () -> clienteBusiness.atualizar(1L, clienteRequest)
@@ -244,8 +223,7 @@ class ClienteBusinessTest {
     }
 
     @Test
-    void testAtualizar_DeveLancarExcecao_EmailJaCadastrado() {
-        // Arrange
+    void testAtualizar_DeveLancarExcecao_EmailJaCadastrado() {        
         Cliente clienteExistente = new Cliente();
         clienteExistente.setId(1L);
         clienteExistente.setEmail("email.antigo@example.com");
@@ -258,8 +236,7 @@ class ClienteBusinessTest {
         
         when(clienteRepository.findById(1L)).thenReturn(clienteExistente);
         when(clienteRepository.findByEmail("joao@example.com")).thenReturn(clienteComEmailNovo);
-
-        // Act & Assert
+         
         EmailJaCadastradoException exception = assertThrows(
                 EmailJaCadastradoException.class,
                 () -> clienteBusiness.atualizar(1L, clienteRequest)
@@ -270,23 +247,18 @@ class ClienteBusinessTest {
     }
 
     @Test
-    void testDeletar_ComSucesso() throws Exception {
-        // Arrange
+    void testDeletar_ComSucesso() throws Exception {        
         when(clienteRepository.deleteById(1L)).thenReturn(true);
-
-        // Act
+        
         clienteBusiness.deletar(1L);
-
-        // Assert
+        
         verify(clienteRepository, times(1)).deleteById(1L);
     }
 
     @Test
-    void testDeletar_DeveLancarExcecao_ClienteNaoEncontrado() {
-        // Arrange
+    void testDeletar_DeveLancarExcecao_ClienteNaoEncontrado() {        
         when(clienteRepository.deleteById(1L)).thenReturn(false);
 
-        // Act & Assert
         ClienteNaoEncontradoException exception = assertThrows(
                 ClienteNaoEncontradoException.class,
                 () -> clienteBusiness.deletar(1L)

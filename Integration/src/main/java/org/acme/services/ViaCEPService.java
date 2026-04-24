@@ -5,6 +5,8 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import org.acme.dto.ViaCEPResponse;
+import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.jboss.logging.Logger;
 
 @ApplicationScoped
@@ -14,6 +16,13 @@ public class ViaCEPService {
     private static final String VIACEP_BASE_URL = "https://viacep.com.br/ws";
     private static final int TIMEOUT_MS = 5000;
 
+    @Retry(
+        maxRetries = 3,
+        delay = 500,
+        maxDuration = 5000,
+        jitter = 100
+    )
+    @Timeout(5000)
     public ViaCEPResponse buscarEnderecoPorCEP(String CEP) {
         if (CEP == null || CEP.isBlank()) {
             logger.warn("CEP inválido fornecido");
