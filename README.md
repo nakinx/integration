@@ -102,3 +102,19 @@ O script run.sh auxilia nas principais funcionalidades do ambiente de desenvolvi
   Executa todos os testes unitários e de integração com apresentação formatada dos resultados:
 
   `./run.sh --test`
+
+## Documentação da API
+
+Segue abaixo os links para entrar na documentação da API.
+
+Swagger UI	
+
+`http://localhost:8080/q/swagger-ui`
+
+OpenAPI JSON	
+
+`http://localhost:8080/q/openapi`
+
+OpenAPI YAML	
+
+`http://localhost:8080/q/openapi?format=yaml`
