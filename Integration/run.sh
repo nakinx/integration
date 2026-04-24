@@ -43,6 +43,7 @@ show_usage() {
     echo "  --stop       Para os containers"
     echo "  --logs       Mostra logs dos containers"
     echo "  --db         Conecta ao banco de dados PostgreSQL"
+    echo "  --test       Executa os testes unitários e mostra resultados"
     echo "  --help       Mostra esta mensagem"
 }
 
@@ -98,6 +99,87 @@ db_shell() {
     docker-compose -f "$SCRIPT_DIR/docker-compose.yml" exec postgres psql -U postgres -d integration_db
 }
 
+# Função para executar testes unitários
+run_tests() {
+    print_info "## EXECUTANDO TESTES UNITÁRIOS ## "
+    echo ""
+    
+    # Executar testes e capturar saída
+    TEST_OUTPUT=$(./mvnw test 2>&1)
+    TEST_EXIT_CODE=$?
+    
+    # Extrair informações relevantes
+    TESTS_RUN=$(echo "$TEST_OUTPUT" | grep -o "Tests run: [0-9]*" | tail -1 | grep -o "[0-9]*")
+    FAILURES=$(echo "$TEST_OUTPUT" | grep -o "Failures: [0-9]*" | tail -1 | grep -o "[0-9]*")
+    ERRORS=$(echo "$TEST_OUTPUT" | grep -o "Errors: [0-9]*" | tail -1 | grep -o "[0-9]*")
+    SKIPPED=$(echo "$TEST_OUTPUT" | grep -o "Skipped: [0-9]*" | tail -1 | grep -o "[0-9]*")
+    
+    # Mostrar resumo por classe de teste
+    print_info "Resultados por classe de teste:"
+    echo ""
+    echo "$TEST_OUTPUT" | grep -E "Tests run: [0-9]+.*in org\.acme\." | while read -r line; do
+        CLASS_NAME=$(echo "$line" | grep -o "in org\.acme\.[^ ]*" | sed 's/in //')
+        RESULT=$(echo "$line" | grep -o "Tests run: [0-9]*, Failures: [0-9]*, Errors: [0-9]*, Skipped: [0-9]*")
+        
+        # Colorir baseado no resultado
+        if echo "$line" | grep -q "Failures: 0.*Errors: 0"; then
+            echo -e "  ${GREEN}${NC} $CLASS_NAME"
+            echo -e "    ${BLUE}$RESULT${NC}"
+        else
+            echo -e "  ${RED}${NC} $CLASS_NAME"
+            echo -e "    ${RED}$RESULT${NC}"
+        fi
+        echo ""
+    done
+    
+    # Mostrar resumo geral
+    echo ""
+    print_info "## RESUMO GERAL DOS TESTES ##"
+    echo ""
+    
+    if [ ! -z "$TESTS_RUN" ]; then
+        echo -e "  Total de testes:${NC}     $TESTS_RUN"
+        
+        if [ "$FAILURES" = "0" ]; then
+            echo -e "  Falhas:${NC}              $FAILURES"
+        else
+            echo -e "  Falhas:${NC}              $FAILURES"
+        fi
+        
+        if [ "$ERRORS" = "0" ]; then
+            echo -e "  Erros:${NC}               $ERRORS"
+        else
+            echo -e "  Erros:${NC}               $ERRORS"
+        fi
+        
+        echo -e "  Ignorados:${NC}           $SKIPPED"
+        echo ""
+        
+        # Calcular taxa de sucesso
+        if [ "$TESTS_RUN" -gt 0 ]; then
+            PASSED=$((TESTS_RUN - FAILURES - ERRORS - SKIPPED))
+            SUCCESS_RATE=$((PASSED * 100 / TESTS_RUN))
+            echo -e "  Taxa de sucesso:${NC}     ${SUCCESS_RATE}%"
+        fi
+    fi
+    
+    echo ""
+    print_info "═════════════════════════════════════════════"
+    
+    # Verificar resultado e mostrar mensagem apropriada
+    if [ $TEST_EXIT_CODE -eq 0 ]; then
+        print_success "TODOS OS TESTES PASSARAM COM SUCESSO!"
+        echo ""
+        return 0
+    else
+        print_error "ALGUNS TESTES FALHARAM!"
+        echo ""
+        print_warning "Execute './mvnw test' para ver detalhes completos dos erros."
+        echo ""
+        return 1
+    fi
+}
+
 # Main
 case "${1:-}" in
     --build-only)
@@ -114,6 +196,9 @@ case "${1:-}" in
         ;;
     --db)
         db_shell
+        ;;
+    --test)
+        run_tests
         ;;
     --help)
         show_usage
