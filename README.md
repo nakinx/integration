@@ -118,3 +118,17 @@ OpenAPI JSON
 OpenAPI YAML	
 
 `http://localhost:8080/q/openapi?format=yaml`
+
+## Teste de saúde da aplicação
+
+# Saúde geral
+
+`http://localhost:8080/q/health`
+
+# Aplicação está ativa?
+
+`http://localhost:8080/q/health/live`
+
+# Serviços estão disponiveis
+
+`http://localhost:8080/q/health/ready`

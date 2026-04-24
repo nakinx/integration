@@ -55,8 +55,8 @@ public class NominatimService {
             String encodedQuery = java.net.URLEncoder.encode(query.toString(), "UTF-8");
             String url = String.format("%s?q=%s&format=json&limit=1", NOMINATIM_BASE_URL, encodedQuery);
             
-            logger.debug("Consultando Nominatim para: {}", query);
-            logger.debug("URL da requisição: {}", url);
+            logger.debug("Consultando Nominatim para: " + query);
+            logger.debug("URL da requisição: " + url);
 
             String responseBody = client.target(url)
                     .request()
@@ -64,7 +64,7 @@ public class NominatimService {
                     .get(String.class);
 
             if (responseBody == null || responseBody.isBlank()) {
-                logger.warn("Coordenadas não encontradas para: {}", query);
+                logger.warn("Coordenadas não encontradas para: " + query);
                 return null;
             }
 
@@ -73,7 +73,7 @@ public class NominatimService {
             List<Map<String, Object>> results = mapper.readValue(responseBody, List.class);
 
             if (results == null || results.isEmpty()) {
-                logger.warn("Coordenadas não encontradas para: {}", query);
+                logger.warn("Coordenadas não encontradas para: " + query);
                 return null;
             }
 
@@ -91,8 +91,7 @@ public class NominatimService {
             );
             response.setMapUrl(mapUrl);
             
-            logger.info("Coordenadas encontradas - Latitude: {}, Longitude: {}", 
-                       response.getLatitude(), response.getLongitude());
+            logger.info("Coordenadas encontradas - Latitude: " + response.getLatitude() + ", Longitude: " + response.getLongitude());
 
             return response;
 
