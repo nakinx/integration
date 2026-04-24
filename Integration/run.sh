@@ -2,7 +2,7 @@
 
 # Script para refazer a build e reiniciar containers
 
-# Diretorio do script onde está o docker-compose.yml
+# Definir diretório do script (onde está o docker-compose.yml)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Tratar erros mais graciosamente
@@ -15,7 +15,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Funcao para imprimir mensagens
+# Função para imprimir mensagens
 print_info() {
     echo -e "${BLUE} $1${NC}"
 }
@@ -32,9 +32,9 @@ print_error() {
     echo -e "${RED} $1${NC}"
 }
 
-# Funcao para mostrar uso
+# Função para mostrar uso
 show_usage() {
-    echo "Uso: ./run.sh [opção]"
+    echo "Uso: ./rebuild.sh [opção]"
     echo ""
     echo "Opções:"
     echo "  (Sem opcao)  Rebuild completo e restart dos containers"
@@ -46,7 +46,7 @@ show_usage() {
     echo "  --help       Mostra esta mensagem"
 }
 
-# Funcao para fazer rebuild
+# Função para fazer rebuild
 rebuild_project() {
     print_info "Iniciando rebuild do projeto Maven..."
     
@@ -79,26 +79,26 @@ restart_containers() {
     docker-compose -f "$SCRIPT_DIR/docker-compose.yml" ps
 }
 
-# Funcao para parar containers
+# Função para parar containers
 stop_containers() {
     print_info "Parando containers..."
     docker-compose -f "$SCRIPT_DIR/docker-compose.yml" down
     print_success "Containers parados!"
 }
 
-# Funcao para mostrar logs
+# Função para mostrar logs
 show_logs() {
     print_info "Mostrando logs dos containers..."
     docker-compose -f "$SCRIPT_DIR/docker-compose.yml" logs -f
 }
 
-# Funcao para conectar ao banco de dados
+# Função para conectar ao banco de dados
 db_shell() {
     print_info "Conectando ao banco de dados PostgreSQL..."
     docker-compose -f "$SCRIPT_DIR/docker-compose.yml" exec postgres psql -U postgres -d integration_db
 }
 
-# Principal
+# Main
 case "${1:-}" in
     --build-only)
         rebuild_project

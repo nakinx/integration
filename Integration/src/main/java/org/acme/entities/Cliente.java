@@ -37,6 +37,15 @@ public class Cliente {
     @Column(name = "logradouro", length = 100, nullable = true)
     private String logradouro;
 
+    @Column(name = "latitude", nullable = true)
+    private Double latitude;
+
+    @Column(name = "longitude", nullable = true)
+    private Double longitude;
+
+    @Column(name = "map_url", length = 255, nullable = true)
+    private String mapUrl;
+
     // Construtores
     public Cliente() {
     }
@@ -116,6 +125,30 @@ public class Cliente {
         this.logradouro = logradouro;
     }
 
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getMapUrl() {
+        return mapUrl;
+    }
+
+    public void setMapUrl(String mapUrl) {
+        this.mapUrl = mapUrl;
+    }
+
     @Override
     public String toString() {
         return "Cliente{" +
@@ -127,6 +160,9 @@ public class Cliente {
                 ", localidade='" + localidade + '\'' +
                 ", bairro='" + bairro + '\'' +
                 ", logradouro='" + logradouro + '\'' +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", mapUrl='" + mapUrl + '\'' +
                 '}';
     }
 }
