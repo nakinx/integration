@@ -76,22 +76,29 @@ Ao criar o banco de dados pela primeira vez, configure o Hibernate para criar as
 O script run.sh auxilia nas principais funcionalidades do ambiente de desenvolvimento da aplicação, automatizando tarefas comuns do dia a dia do desenvolvedor. Abaixo está a lista de funcionalidades disponibilizadas:
 
   Executa um rebuild completo do projeto e reinicia os containers Docker:
-  ./run.sh
+
+  `./run.sh`
 
   Executa apenas o rebuild do projeto Maven sem afetar os containers:
-  ./run.sh --build-only
+
+  `./run.sh --build-only`
 
   Reinicia apenas os containers Docker sem rebuild:
-  ./run.sh --restart
+
+  `./run.sh --restart`
 
   Para todos os containers da aplicação de forma limpa:
-  ./run.sh --stop
+
+  `./run.sh --stop`
 
   Mostra os logs em tempo real de todos os containers:
-  ./run.sh --logs
+
+  `./run.sh --logs`
 
   Conecta diretamente ao PostgreSQL via terminal interativo:
-  ./run.sh --db
+
+  `./run.sh --db`
 
   Executa todos os testes unitários e de integração com apresentação formatada dos resultados:
-  ./run.sh --test
+
+  `./run.sh --test`
