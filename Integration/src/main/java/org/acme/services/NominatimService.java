@@ -55,18 +55,16 @@ public class NominatimService {
             String encodedQuery = java.net.URLEncoder.encode(query.toString(), "UTF-8");
             String url = String.format("%s?q=%s&format=json&limit=1", NOMINATIM_BASE_URL, encodedQuery);
             
-            logger.info("Consultando Nominatim para: " + query.toString());
-            logger.info("URL: " + url);
+            logger.debug("Consultando Nominatim para: {}", query);
+            logger.debug("URL da requisição: {}", url);
 
             String responseBody = client.target(url)
                     .request()
                     .header("User-Agent", "Integration-API/1.0")
                     .get(String.class);
 
-            logger.info("Resposta do Nominatim: " + responseBody);
-
             if (responseBody == null || responseBody.isBlank()) {
-                logger.warn("Coordenadas não encontradas para: " + query.toString());
+                logger.warn("Coordenadas não encontradas para: {}", query);
                 return null;
             }
 
@@ -75,7 +73,7 @@ public class NominatimService {
             List<Map<String, Object>> results = mapper.readValue(responseBody, List.class);
 
             if (results == null || results.isEmpty()) {
-                logger.warn("Coordenadas não encontradas para: " + query.toString() + " - Results: " + results);
+                logger.warn("Coordenadas não encontradas para: {}", query);
                 return null;
             }
 
@@ -93,14 +91,13 @@ public class NominatimService {
             );
             response.setMapUrl(mapUrl);
             
-            logger.info("Coordenadas encontradas - Latitude: " + response.getLatitude() + 
-                       ", Longitude: " + response.getLongitude() +
-                       ", MapUrl: " + response.getMapUrl());
+            logger.info("Coordenadas encontradas - Latitude: {}, Longitude: {}", 
+                       response.getLatitude(), response.getLongitude());
 
             return response;
 
         } catch (Exception e) {
-            logger.error("Erro ao consultar Nominatim para: " + logradouro + " " + localidade, e);
+            logger.error("Erro ao consultar Nominatim", e);
             return null;
         } finally {
             if (client != null) {

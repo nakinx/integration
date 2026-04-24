@@ -33,7 +33,7 @@ public class ViaCEPService {
         String CEPLimpo = CEP.replaceAll("[^0-9]", "");
 
         if (CEPLimpo.length() != 8) {
-            logger.warn("CEP deve conter exatamente 8 dígitos: " + CEP);
+            logger.warn("CEP deve conter exatamente 8 dígitos: {}", CEP);
             return null;
         }
 
@@ -43,22 +43,22 @@ public class ViaCEPService {
             
             String url = String.format("%s/%s/json", VIACEP_BASE_URL, CEPLimpo);
             
-            logger.info("Consultando ViaCEP para CEP: " + CEP);
+            logger.debug("Consultando ViaCEP para CEP: {}", CEPLimpo);
 
             ViaCEPResponse response = client.target(url)
                     .request()
                     .get(ViaCEPResponse.class);
 
             if (response != null && response.getErro() != null && response.getErro()) {
-                logger.warn("CEP não encontrado: " + CEP);
+                logger.warn("CEP não encontrado: {}", CEPLimpo);
                 return null;
             }
 
-            logger.info("Endereço encontrado para CEP: " + CEP);
+            logger.info("Endereço encontrado para CEP: {}", CEPLimpo);
             return response;
 
         } catch (Exception e) {
-            logger.error("Erro ao consultar ViaCEP para CEP: " + CEP, e);
+            logger.error("Erro ao consultar ViaCEP para CEP: {}", CEPLimpo, e);
             return null;
         } finally {
             if (client != null) {
