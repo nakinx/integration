@@ -28,6 +28,7 @@ HTTP Request
 
 ### Estrutura de Pacotes
 
+```
 org/acme/
 ├── business/ .................................. Lógica de negócio                                   
 │   └── ClienteBusiness.java 
@@ -45,7 +46,8 @@ org/acme/
 │   ├── ViaCEPResponse.java .................... ViaCEP
 │   └── NominatimResponse.java ................. Nominatim
 └── config/ .................................... Configurações da aplicação
-    └── OpenAPIConfig.java 
+    └── OpenAPIConfig.java
+```     
 
 ## Configuração Inicial do Banco de Dados
 
