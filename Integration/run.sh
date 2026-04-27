@@ -43,6 +43,7 @@ show_usage() {
     echo "  --stop       Para os containers"
     echo "  --logs       Mostra logs dos containers"
     echo "  --db         Conecta ao banco de dados PostgreSQL"
+    echo "  --load-db    Carrega o schema e dados iniciais (init-db.sql)"
     echo "  --test       Executa os testes unitários e mostra resultados"
     echo "  --help       Mostra esta mensagem"
 }
@@ -97,6 +98,34 @@ show_logs() {
 db_shell() {
     print_info "Conectando ao banco de dados PostgreSQL..."
     docker-compose -f "$SCRIPT_DIR/docker-compose.yml" exec postgres psql -U postgres -d integration_db
+}
+
+# Função para carregar schema e dados iniciais do banco de dados
+load_db() {
+    print_info "Carregando schema e dados iniciais..."
+    
+    # Verificar se arquivo existe
+    if [ ! -f "$SCRIPT_DIR/docker/init-db.sql" ]; then
+        print_error "Arquivo init-db.sql não encontrado em $SCRIPT_DIR/docker/"
+        exit 1
+    fi
+    
+    # Verificar se container PostgreSQL está rodando tentando executar pg_isready
+    if ! docker-compose -f "$SCRIPT_DIR/docker-compose.yml" exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
+        print_error "Container PostgreSQL não está rodando ou não respondendo!"
+        print_info "Execute './run.sh --restart' para iniciar os containers"
+        exit 1
+    fi
+    
+    print_info "Executando init-db.sql..."
+    docker-compose -f "$SCRIPT_DIR/docker-compose.yml" exec -T postgres psql -U postgres -d integration_db -f /docker-entrypoint-initdb.d/01-init.sql
+    
+    if [ $? -eq 0 ]; then
+        print_success "Schema e dados carregados com sucesso!"
+    else
+        print_error "Erro ao carregar dados do banco de dados"
+        exit 1
+    fi
 }
 
 # Função para executar testes unitários
@@ -196,6 +225,9 @@ case "${1:-}" in
         ;;
     --db)
         db_shell
+        ;;
+    --load-db)
+        load_db
         ;;
     --test)
         run_tests

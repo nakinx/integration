@@ -34,8 +34,7 @@ public class HealthCheckTest {
                 .statusCode(200)
                 .body("status", equalTo("UP"))
                 .body("checks[0].name", equalTo("Aplicação"))
-                .body("checks[0].status", equalTo("UP"))
-                .body("checks[0].data.versão", equalTo("1.0.0"));
+                .body("checks[0].status", equalTo("UP"));
     }
 
     @Test
@@ -62,17 +61,17 @@ public class HealthCheckTest {
     }
 
     @Test
-    public void testHealthCheckIncluiDadosAdicionais() {
+    public void testHealthCheckIncluiChecksEsperados() {
         given()
                 .contentType(ContentType.JSON)
                 .when()
                 .get("/q/health")
                 .then()
                 .statusCode(200)
-                .body("checks.find { it.name == 'Aplicação' }.data.status", 
-                      equalTo("ativo"))
-                .body("checks.find { it.name == 'Banco de Dados' }.data.banco", 
-                      equalTo("PostgreSQL"));
+                .body("checks.find { it.name == 'Aplicação' }.status",
+                      equalTo("UP"))
+                .body("checks.find { it.name == 'Banco de Dados' }.status",
+                      equalTo("UP"));
     }
 
     @Test

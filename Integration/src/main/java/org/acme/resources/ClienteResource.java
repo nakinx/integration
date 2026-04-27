@@ -1,5 +1,7 @@
 package org.acme.resources;
 
+import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -11,6 +13,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.acme.business.ClienteBusiness;
 import org.acme.business.ClienteBusiness.ClienteNaoEncontradoException;
@@ -31,6 +34,7 @@ public class ClienteResource {
     ClienteBusiness clienteBusiness;
 
     @GET
+    @PermitAll
     @Operation(
         summary = "Listar todos os clientes", 
         description = "Retorna uma lista com todos os clientes cadastrados"
@@ -49,6 +53,7 @@ public class ClienteResource {
 
     @GET
     @Path("/{id}")
+    @PermitAll
     @Operation(
         summary = "Obter cliente por ID", 
         description = "Retorna os detalhes de um cliente específico pelo seu ID"
@@ -74,7 +79,9 @@ public class ClienteResource {
     }
 
     @POST
-    @Operation(summary = "Criar novo cliente", description = "Cria um novo cliente no sistema. O email deve ser único. O CEP será usado para buscar automaticamente os dados de endereço e coordenadas geográficas.")
+    @RolesAllowed({"admin", "user"})
+    @SecurityRequirement(name = "Bearer")
+    @Operation(summary = "Criar novo cliente", description = "Cria um novo cliente no sistema. Requer autenticação (role: admin ou user). O email deve ser único. O CEP será usado para buscar automaticamente os dados de endereço e coordenadas geográficas.")
     @APIResponses({
         @APIResponse(
             responseCode = "201", 
@@ -83,6 +90,8 @@ public class ClienteResource {
             schema = @Schema(implementation = Cliente.class)
         )),
         @APIResponse(responseCode = "400", description = "Dados inválidos ou CEP não encontrado"),
+        @APIResponse(responseCode = "401", description = "Não autenticado"),
+        @APIResponse(responseCode = "403", description = "Sem permissão"),
         @APIResponse(responseCode = "409", description = "Email já cadastrado no sistema")
     })
     public Response criar(@Valid ClienteRequest request) {
@@ -102,9 +111,11 @@ public class ClienteResource {
 
     @PUT
     @Path("/{id}")
+    @RolesAllowed({"admin", "user"})
+    @SecurityRequirement(name = "Bearer")
     @Operation(
         summary = "Atualizar cliente", 
-        description = "Atualiza os dados de um cliente existente"
+        description = "Atualiza os dados de um cliente existente. Requer autenticação (role: admin ou user)."
     )
     @APIResponses({
         @APIResponse(
@@ -114,6 +125,8 @@ public class ClienteResource {
             schema = @Schema(implementation = Cliente.class))
         ),
         @APIResponse(responseCode = "400", description = "Dados inválidos"),
+        @APIResponse(responseCode = "401", description = "Não autenticado"),
+        @APIResponse(responseCode = "403", description = "Sem permissão"),
         @APIResponse(responseCode = "404", description = "Cliente não encontrado"),
         @APIResponse(responseCode = "409", description = "Email já cadastrado para outro cliente")
     })
@@ -142,12 +155,16 @@ public class ClienteResource {
 
     @DELETE
     @Path("/{id}")
+    @RolesAllowed("admin")
+    @SecurityRequirement(name = "Bearer")
     @Operation(
         summary = "Deletar cliente", 
-        description = "Remove um cliente do sistema"
+        description = "Remove um cliente do sistema. Requer autenticação (role: admin)."
     )
     @APIResponses({
         @APIResponse(responseCode = "204", description = "Cliente deletado com sucesso"),
+        @APIResponse(responseCode = "401", description = "Não autenticado"),
+        @APIResponse(responseCode = "403", description = "Sem permissão"),
         @APIResponse(responseCode = "404", description = "Cliente não encontrado")
     })
     public Response deletar(

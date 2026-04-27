@@ -2,6 +2,7 @@ package org.acme.resources;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.security.TestSecurity;
 import io.restassured.http.ContentType;
 import org.acme.business.ClienteBusiness;
 import org.acme.business.ClienteBusiness.CepInvalidoException;
@@ -103,6 +104,7 @@ class ClienteResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "user", roles = {"user"})
     void testCriar_DeveRetornarStatus201ComClienteCriado() throws Exception {       
         when(clienteBusiness.criar(any(ClienteRequest.class))).thenReturn(cliente);
         
@@ -122,6 +124,7 @@ class ClienteResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "user", roles = {"user"})
     void testCriar_DeveRetornarStatus409QuandoEmailJaCadastrado() throws Exception {
         when(clienteBusiness.criar(any(ClienteRequest.class)))
                 .thenThrow(new EmailJaCadastradoException("E-mail já cadastrado no sistema"));
@@ -139,6 +142,7 @@ class ClienteResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "user", roles = {"user"})
     void testCriar_DeveRetornarStatus400QuandoCepInvalido() throws Exception {
         when(clienteBusiness.criar(any(ClienteRequest.class)))
                 .thenThrow(new CepInvalidoException("CEP inválido ou não encontrado"));
@@ -156,6 +160,7 @@ class ClienteResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "user", roles = {"user"})
     void testCriar_DeveRetornarStatus400QuandoDadosInvalidos() {
         ClienteRequest requestInvalido = new ClienteRequest();
         requestInvalido.setEmail("joao@example.com");
@@ -170,6 +175,18 @@ class ClienteResourceTest {
     }
 
     @Test
+    void testCriar_DeveRetornarStatus401QuandoNaoAutenticado() {
+        given()
+            .contentType(ContentType.JSON)
+            .body(clienteRequest)
+            .when()
+                .post("/clientes")
+            .then()
+                .statusCode(401);
+    }
+
+    @Test
+    @TestSecurity(user = "user", roles = {"user"})
     void testAtualizar_DeveRetornarStatus200ComClienteAtualizado() throws Exception {       
         when(clienteBusiness.atualizar(eq(1L), any(ClienteRequest.class))).thenReturn(cliente);
         
@@ -189,6 +206,7 @@ class ClienteResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "user", roles = {"user"})
     void testAtualizar_DeveRetornarStatus404QuandoClienteNaoExiste() throws Exception {       
         when(clienteBusiness.atualizar(eq(99L), any(ClienteRequest.class)))
                 .thenThrow(new ClienteNaoEncontradoException("Cliente não encontrado"));
@@ -206,6 +224,7 @@ class ClienteResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "user", roles = {"user"})
     void testAtualizar_DeveRetornarStatus409QuandoEmailJaCadastrado() throws Exception {       
         when(clienteBusiness.atualizar(eq(1L), any(ClienteRequest.class)))
                 .thenThrow(new EmailJaCadastradoException("E-mail já cadastrado para outro cliente"));
@@ -223,6 +242,18 @@ class ClienteResourceTest {
     }
 
     @Test
+    void testAtualizar_DeveRetornarStatus401QuandoNaoAutenticado() {
+        given()
+            .contentType(ContentType.JSON)
+            .body(clienteRequest)
+            .when()
+                .put("/clientes/1")
+            .then()
+                .statusCode(401);
+    }
+
+    @Test
+    @TestSecurity(user = "admin", roles = {"admin"})
     void testDeletar_DeveRetornarStatus204QuandoClienteDeletado() throws Exception {       
         doNothing().when(clienteBusiness).deletar(1L);
         
@@ -236,6 +267,7 @@ class ClienteResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "admin", roles = {"admin"})
     void testDeletar_DeveRetornarStatus404QuandoClienteNaoExiste() throws Exception {       
         doThrow(new ClienteNaoEncontradoException("Cliente não encontrado"))
                 .when(clienteBusiness).deletar(99L);
@@ -248,5 +280,24 @@ class ClienteResourceTest {
                 .body(is("Cliente não encontrado"));
 
         verify(clienteBusiness, times(1)).deletar(99L);
+    }
+
+    @Test
+    void testDeletar_DeveRetornarStatus401QuandoNaoAutenticado() {
+        given()
+            .when()
+                .delete("/clientes/1")
+            .then()
+                .statusCode(401);
+    }
+
+    @Test
+    @TestSecurity(user = "user", roles = {"user"})
+    void testDeletar_DeveRetornarStatus403QuandoUsuarioSemPermissao() {
+        given()
+            .when()
+                .delete("/clientes/1")
+            .then()
+                .statusCode(403);
     }
 }

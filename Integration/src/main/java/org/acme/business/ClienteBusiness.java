@@ -36,35 +36,35 @@ public class ClienteBusiness {
     }
 
     /**
-     * Obtém um cliente pelo ID
+     * Obtem um cliente pelo ID
      */
     public Cliente obter(Long id) {
         return clienteRepository.findById(id);
     }
 
     /**
-     * Cria um novo cliente com validação de email único e busca de endereço/coordenadas
+     * Cria um novo cliente com validação de email unico e busca de endereco/coordenadas
      */
     @Transactional
     public Cliente criar(ClienteRequest request) throws EmailJaCadastradoException, CepInvalidoException {
-        // Validar se email já está cadastrado
+        // Verifica se email ja esta cadastrado
         if (clienteRepository.findByEmail(request.getEmail()) != null) {
             logger.warn("Tentativa de criar cliente com email já cadastrado: " + request.getEmail());
             throw new EmailJaCadastradoException("E-mail já cadastrado no sistema");
         }
 
-        // Criar novo cliente com os dados da requisição
         Cliente cliente = new Cliente();
         cliente.setNome(request.getNome());
         cliente.setEmail(request.getEmail());
         cliente.setCep(request.getCep());
 
-        // Buscar dados de endereço através do ViaCEP caso o CEP seja fornecido
+        // Buscar dados de endereco atraves do ViaCEP caso o CEP seja fornecido
         if (cliente.getCep() != null && !cliente.getCep().isBlank()) {
             enriquecerClienteComEndereco(cliente);
         }
 
         clienteRepository.persist(cliente);
+
         logger.info("Cliente criado com sucesso: " + cliente.getId() + " - " + cliente.getEmail());
         
         return cliente;
@@ -82,7 +82,7 @@ public class ClienteBusiness {
             throw new ClienteNaoEncontradoException("Cliente não encontrado");
         }
 
-        // Validar se o novo email já está cadastrado para outro cliente
+        // Validar se o novo email ja esta cadastrado para outro cliente
         if (!cliente.getEmail().equals(request.getEmail())) {
             Cliente clienteComEmail = clienteRepository.findByEmail(request.getEmail());
             if (clienteComEmail != null) {
@@ -173,7 +173,7 @@ public class ClienteBusiness {
         cliente.setMapUrl(null);
     }
 
-    // Exceções de negócio
+    // Exceções de negocio
     public static class EmailJaCadastradoException extends Exception {
         public EmailJaCadastradoException(String message) {
             super(message);

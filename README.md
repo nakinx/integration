@@ -51,25 +51,16 @@ org/acme/
 
 ## Configuração Inicial do Banco de Dados
 
-Esta aplicação utiliza PostgreSQL como banco de dados e Hibernate ORM para persistência de dados.
+  Execute o comando abaixo para fazer a build do projeto e iniciar os containers de aplicação e banco de dados.
 
-Ao criar o banco de dados pela primeira vez, configure o Hibernate para criar as tabelas automaticamente:
+  `./run.sh`
 
-1. **Edite `src/main/resources/application.properties`:**
-   ```properties
-   quarkus.hibernate-orm.database.generation=create
-   ```
+  Para carregar a estrutura do banco de dados execute:
 
-2. **Inicie a aplicação:**
-   ```shell script
-   # Com Docker Compose
-   docker-compose up --build
-   ```
+   `./run.sh --load-db`
 
-3. **Após as tabelas serem criadas, volte para o modo validação:**
-   ```properties
-   quarkus.hibernate-orm.database.generation=validate
-   ```
+   Essa funcionalidade ira carregar também usuário padrões.
+
 
 ## Executando o Projeto
 
@@ -98,6 +89,10 @@ O script run.sh auxilia nas principais funcionalidades do ambiente de desenvolvi
   Conecta diretamente ao PostgreSQL via terminal interativo:
 
   `./run.sh --db`
+
+  Carrega a estrutura e dados iniciais (init-db.sql):
+
+  `--load-db`
 
   Executa todos os testes unitários e de integração com apresentação formatada dos resultados:
 
@@ -132,3 +127,31 @@ OpenAPI YAML
 # Serviços estão disponiveis
 
 `http://localhost:8080/q/health/ready`
+
+## Segurança
+
+Algumas operações precisam de autenticação para serem consumidas.
+
+Para consumir gere o token:
+
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin@acme.org","password":"admin123"}'
+
+Depois que o token foi gerado basta utilizar. Como exemplo chamo a operação de criar cliente:
+
+curl -X POST http://localhost:8080/clientes \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "João da Silva",
+    "email": "joao@example.com",
+    "cep": "01310-100"
+  }'
+
+
+## Notas
+
+Este projeto precisa de ajustes antes de ser enviado para produção.
+
+É necessário avaliar onde colocar as chaves e ajustar as credencias do usuários padrões.
